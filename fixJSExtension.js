@@ -38,7 +38,14 @@ function processDirectory(dirPath) {
   });
 }
 
-setInterval(() => {
+if (process.env.SKIP_INTERVAL) {
+  console.log("skip interval. run once");
+
   processDirectory(srcDir);
   processDirectory(distDir);
-}, 10000);
+} else {
+  setInterval(() => {
+    processDirectory(srcDir);
+    processDirectory(distDir);
+  }, 3000);
+}

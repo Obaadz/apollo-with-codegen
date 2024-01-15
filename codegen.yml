@@ -16,7 +16,7 @@
 
 schema: "**/schema.graphql"
 generates:
-  src/schema:
+  src/schemas:
     preset: "@eddeee888/gcg-typescript-resolver-files"
     watchPattern: "**/*.mappers.ts"
     emitLegacyCommonJSImports: false

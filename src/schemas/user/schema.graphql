@@ -1,0 +1,15 @@
+extend type Query {
+  user(id: String): User!
+}
+
+extend type Mutation {
+  register(fullName: String!, email: String!, password: String!): User
+  login(email: String!, password: String!): User
+}
+
+type User {
+  id: String
+  fullName: String!
+  email: String!
+  token: String
+}

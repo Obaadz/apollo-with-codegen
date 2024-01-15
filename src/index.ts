@@ -1,9 +1,17 @@
+import loadEnvironment from "./utils/loadEnvironment.js";
+loadEnvironment();
+
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
-import { BooksDataSource } from "./datasources.js";
-import { resolvers } from "./schema/resolvers.generated.js";
-import { typeDefs } from "./schema/typeDefs.generated.js";
+import { resolvers } from "./schemas/resolvers.generated.js";
+import { typeDefs } from "./schemas/typeDefs.generated.js";
 import express from "express";
+import connectMongo from "./utils/connectMongo.js";
+import type { IUser } from "./models/userModel.js";
+import extractTokenFromHeader from "./utils/extractTokenFromHeader.js";
+import getUserByToken from "./utils/getUserByToken.js";
+
+await connectMongo();
 
 const app = express();
 
@@ -14,9 +22,7 @@ app.use(express.json());
 // from the root directory of the project.
 
 export interface MyContext {
-  dataSources: {
-    booksAPI: BooksDataSource;
-  };
+  user?: IUser;
 }
 
 // The ApolloServer constructor requires two parameters: your schema
@@ -31,19 +37,24 @@ await server.start();
 app.use(
   "/graphql",
   expressMiddleware(server, {
-    context: async () => {
+    context: async ({ req, res }) => {
+      let user: IUser | null = null;
+
+      if (req.headers.authorization) {
+        const token = extractTokenFromHeader(req.headers.authorization);
+
+        user = await getUserByToken(token);
+
+        user.set("token", token);
+      }
+
       return {
-        // We are using a static data set for this example, but normally
-        // this would be where you'd add your data source connections
-        // or your REST API classes.
-        dataSources: {
-          booksAPI: new BooksDataSource(),
-        },
+        user,
       };
     },
   })
 );
 
-app.listen(4000, async () => {
-  console.log(`Listening on port ${4000}`);
+app.listen(process.env.PORT, async () => {
+  console.log(`Listening on port ${process.env.PORT}`);
 });
